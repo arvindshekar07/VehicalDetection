@@ -13,23 +13,22 @@ The goals / steps of this project are the following:
 
 ###Introduction
 Here  the aim of this  project is to detect vehical on the road by using computer
-vision techniques  the detect the vehicals. The code for this project is written in 
+vision techniques . The code for this project is written in 
 [VehicalDetection.ipynb file ](VehicalDetection.ipynb). Click on the link to check the code.
 
-To give a gist of the project I needed to find vehical on a road. There fore i 
-needed a method the would uniquely find the the vehical alone .
-One way was to use color threshold and do an image subtraction to check the movin object .
-But this technique would fail if the was a vehiacl that was moving in the same pace as your vehical 
-and  to the compter vision techique this would appear as a static object.
+To give a gist of the project I needed to find all vehicle on a road. 
+One approach was to use color threshold and do an image subtraction to check the movin object .
+But this technique would fail if the was a vehicle that was moving in the same pace as your vehical 
+and  to the computer vision techique this would appear as a static object.
 
-Therefore we would Histogram of Oriented Gradients  find unique gradients for cars and non car objects.
-We find these gradients initally in RGB color space and later found that HOG detectino in YCrCb
-was is better.
+One other technique is to use Histogram of Oriented Gradients  to find gradients in the color and spatial region for cars and non car objects and use that to classify car objects.
+Initially I find these gradients initially in RGB color space and later found  YCrCb was a better choice in terms of the detections .
 
-Based on these features I train a SVM classifier from  the feature set that is provided from a car and non car object.
 
-Once the classifier is ready  this tested on a video where each fram is treated as an image
-and use sliding window to move through the image to find a car like object.
+Based on these features I train a SVM classifier from those features set that is provided from a car and non car object.
+
+Once the classifier is ready  this tested on a video where each frame is treated as an image
+and use sliding window approach to move through the image to find a car like object.
  
 The window is made in multiple sizes so as to capture car images that may apper 
 close or away in a perspective images.
@@ -54,12 +53,11 @@ for imtype in image_type:
 
 ```
 These two array will be used for training in an later stage. On downloading the data needed for training 
-there are two folder called vehicals and non-vehicals.I put both the dir on the same level as the ipytnb file .
-You can change this implentation accordingly
+there are two folder called vehicals and non-vehicals.
 
 ###Histogram of Oriented Gradients (HOG)
 As discussed earlier we get the HOG of an image based on color and spatial attributes and concatinate them both to get a 
-good detection . With this the detection is more enforced.
+good detection . With this the detection is much better.
 
 Initially we convert the image to the color space of our interest .
 ```python
@@ -95,7 +93,7 @@ def color_hist(img, nbins=32):
     return hist_features
 
 ```
-The features comming out out of these two functions are concatinated  to forma single feature vector.
+The features coming out out of these two functions are concatinated  to form a single feature vector.
 
 ![image1]
 The above every even images is an ouput that comes on performing HOG.
@@ -115,8 +113,7 @@ svc.fit(X_train, y_train)
 ```
 ###Sliding Window Search
 
-As mentioned above we apply a sliding window to check the presence of a car .
-For that we have to set the window size
+As mentioned above we apply a sliding window approach to check the presence of a car .
 ```python
 y_start_stop = [400, 656] # Min and max in y to search in slide_window()
 overlap = 0.5
@@ -125,15 +122,16 @@ overlap = 0.5
    
 ```
 As you can see form the code above the window size is about a 96x 96  and it would move to the next window by 0.5.
-The y_start_stop =[400,656] tell the height at which the sliding should begin and end.
-As sliding through all of the image is an expensive process we slide only bottom half of the image.
+The y_start_stop =[400,656] tells the height at which the sliding should begin and end.
+As sliding through all of the image is an expensive process we slide only bottom half of the image and thus we start from 400px to 656 px
 ![image2]
 
 We can also apply thresholding and image heat/number detection of a single car detection
 and consider it as a single detection.
 ![image3]
 
-With thresholding technique we cam removes some of the false positives that  sometimes get shown in the image 
+With thresholding technique we cam removes some of the false positives that get detected at times.
+
 ```python
 def apply_threshold(heatmap, threshold):
     # Zero out pixels below the threshold

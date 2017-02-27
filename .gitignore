@@ -165,3 +165,6 @@ crashlytics-build.properties
 fabric.properties
 .idea/
 /VehicalDetection.iml
+/vehicles/
+/cutouts/
+/non-vehicles/

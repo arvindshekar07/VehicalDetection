@@ -10,6 +10,8 @@ The goals / steps of this project are the following:
 [image1]: output_images/hog.png 
 [image2]: output_images/multiple_detection.png
 [image3]: output_images/detection_heat_map.png
+[image4]: output_images/HOG_expl1.png
+
 
 ###Introduction
 Here  the aim of this  project is to detect vehical on the road by using computer
@@ -59,7 +61,29 @@ there are two folder called vehicals and non-vehicals.
 As discussed earlier we get the HOG of an image based on color and spatial attributes and concatinate them both to get a 
 good detection . With this the detection is much better.
 
-Initially we convert the image to the color space of our interest .
+To perform HOG orientations, pixels_per_cell and cells_per_block where chosen
+```python
+
+orient = 9
+pix_per_cell =8
+cell_per_block =2
+hog_channel = 'ALL'# can be 0,1,2, ALL
+```
+
+The number of orientations is specified as an integer, and represents the number of orientation bins that the gradient information will be split up into in the histogram. Typical values are between 6 and 12 bins.
+
+The pixels_per_cell parameter specifies the cell size over which each gradient histogram is computed. This paramater is passed as a 2-tuple so you could have different cell sizes in x and y, but cells are commonly chosen to be square.
+
+The cells_per_block parameter is also passed as a 2-tuple, and specifies the local area over which the histogram counts in a given cell will be normalized.
+
+So I here I permitted 8 orents block and let 8 pixel per block. Here 'ALL' hog_channel refers to all the 
+color channels to be used we are finding the features.
+
+We can visualize the above concepts with this diagram below.
+
+![image4]
+
+I  convert the image to the color space of our interest .
 ```python
 if color_space != 'RGB':
             if color_space == 'HSV':
@@ -71,7 +95,7 @@ if color_space != 'RGB':
            
 ```
 
-Later we get get feature based on spatial and color  feature on the image.
+Later I get get feature based on spatial and color  feature on the image.
 ```python
 ## getting the spatial features
 def bin_spatial(img, size=(32, 32)):
@@ -143,24 +167,52 @@ def apply_threshold(heatmap, threshold):
 ### Video Implementation
 All the above procedure is combined into a single pipeline to find the vehicle.
 ```python
-ystart = 400
-ystop = 660
-scale = 1.3
 
+color_space = 'YCrCb'
+orient = 9
+pix_per_cell =8
+cell_per_block =2
+hog_channel = 'ALL'# can be 0,1,2, ALL
+spatial_size=(32,32)#spatial binnig dimensions
+hist_bins= 32
+spatial_feat = True # spatical features on or off
+hist_feat = True # Histogram features on or off
+hog_feat = True # HOG  ffeatures on or off
+
+
+ystart = 400
+ystop = 656
+scale = 1.5
+d= deque(maxlen = 8)
 def pipeline(img):
     
     out_img,heatmap = find_cars(img, ystart=ystart, ystop=ystop, 
                         scale=scale, svc=svc, X_scaler=X_scaler, orient=orient, pix_per_cell=pix_per_cell,
                         cell_per_block=cell_per_block, spatial_size=spatial_size, hist_bins=hist_bins)
     
-    heatmap = apply_threshold(heatmap,1)
+    
+    d.append(heatmap)
+
+    for i in range(len(d)):
+        item = d[i]
+        heatmap = cv2.add(heatmap,item)
+
+    #     labels = label(heatmap)
+    
+    heatmap = apply_threshold(heatmap,6)
+
     labels = label(heatmap)
+
     draw_img = draw_labeled_bboxes(np.copy(img),labels)
     return draw_img
-    
+
+
 ```
-The scale choose is 1.3 . This valus is mostly through test and trial . i had initally tried with 1 and 1.5
-and 1.3 did seem to do the work.
+The scale choose is 1.5 . This valus is mostly through test and trial . I had initially tried with 1 and 1.3
+and 1.5 did seem to do the work.
+Here you can also see that a  queue of limited size has been implemeted 
+to store all the consecutive frames heatmap  and add them all . Here I have kept the queue size as 8 .
+
 
 You can see the output [here](project_video_result.mp4)
 ###Discussion
@@ -170,5 +222,8 @@ have a back drop incase  the  another car  was right in front of another car.
 
 * Also a case where two or more car have are of the same type and color  can also  bring forth a problem.
 
+###References
 
+* Udacity Self driving car project
+* Stack overflow
 
